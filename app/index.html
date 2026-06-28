@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests"> 
+    <title>Weather App </title>
+    <link rel="stylesheet" href="style1.css">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/weather-icons/2.0.9/css/weather-icons.min.css">
+</head>
+<style>
+    /*
+            Loading css animation by tobias ahlin. http://tobiasahlin.com/spinkit/
+            Weather icons by erik flowers. https://erikflowers.github.io/weather-icons/
+            */
+            body {
+                background: #e0e0e0;
+                font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+            }
+            a:hover, a:focus {
+                color: inherit;
+                text-decoration: none;
+                opacity: 0.7;
+            }
+            #pMe,#pBy {
+                display: inline-block;
+                margin-left: 5px;
+                margin-top: 20px;
+            }
+            
+            #pMe a {
+                z-index: -1;
+                color: #666666;
+                font-weight: bold;
+                transition: opacity 0.3s ease-in;
+            }
+            #pMe a:hover {
+                opacity: 0.7;
+                text-decoration: none;
+            }
+            #pMe a:visited {
+                color: #666666;
+            }
+            
+            @keyframes pMe {
+                from { 
+                    -webkit-transform: translate(-50px,0px); opacity: 0;
+                    transform: translate(-50px,0px); opacity: 0;
+                }
+                to { 
+                    -webkit-transform: translate(0px,0px); opacity: 1;
+                    transform: translate(0px,0px); opacity: 1;
+                }
+            }
+            @keyframes pBy {
+                from { 
+                    -webkit-transform: translate(0px,-50px); opacity: 0;
+                    transform: translate(0px,-50px); opacity: 0;
+                }
+                to { 
+                    -webkit-transform: translate(0px,0px); opacity: 1;
+                    transform: translate(0px,0px); opacity: 1;
+                }
+            }
+            .bg-primary {
+                background-color:deepskyblue;
+            }
+            .bg-white {
+                background-color: #FFFFFF;
+            }
+            .text-white {
+                color: #FFFFFF;
+            }
+            .text-light {
+                color: rgba(255, 255, 255, 0.7);
+            }
+            .text-accent {
+                color: #b2ff59;
+            }
+            .text-capitalize {
+                text-transform: capitalize;
+            }
+            .text-shadow {
+                text-shadow: 1px 1px 1px rgba(0,0,0,.4);
+            }
+            .hr-title {
+                border-width: 2px;
+                max-width: 30%;
+                margin: 15px auto;
+            }
+            .hr-title-primary {
+                border-color: #039be5;
+            }
+            /* weather top section */
+            .w-section {
+                padding: 30px 0 90px 0;
+            }
+            .w-header, .w-main {
+                margin-bottom: 20px;
+            }
+            .w-header .glyphicon-map-marker {
+                margin-top: 5px;
+            }
+            .w-header input {
+                float: left;
+                min-width: 85%;
+                max-width: 90%;
+            }
+            /* Tooltip text */
+            .tooltiptext {
+                visibility: hidden;
+                width: 100%;
+                background-color: #555;
+                text-align: center;
+                padding: 5px 0;
+                border-radius: 6px;
+                /* Position the tooltip text */
+                position: absolute;
+                z-index: 1;
+                top: 90%;
+                /* Fade in tooltip */
+                opacity: 0;
+                transition: opacity 0.5s;
+            }
+            /* Tooltip arrow */
+            .tooltiptext::after {
+                position: absolute;
+                top: -12px;
+                left: 20px;
+                content: ' ';
+                border: 6px solid transparent;
+                border-bottom-color: #555;
+            }
+            #location {
+                background-color: transparent;
+                border: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 0;
+                outline: none;
+                width: 100%;
+                margin: 0 0 15px 0;
+                padding: 0;
+                box-shadow: none;
+                box-sizing: content-box;
+                transition: all 0.3s;
+                line-height: 30px;
+            }
+            #date {
+                line-height: 30px;
+            }
+            .wi-main {
+                font-size: 5.5em;
+                position: relative;
+                vertical-align: top;
+                top: 15px;
+                margin-bottom: 30px;
+                margin-right: 20px;
+            }
+            #temperature {
+                font-size: 4em;
+                line-height: 1.7em;
+                vertical-align: top;
+            }
+            .unit-block, .min-max-block {
+                display: inline-block;
+            }
+            .unit-block {
+                margin-left: -9px;
+                vertical-align: top;
+            }
+            .min-max-block {
+                margin-top: 30px;
+                margin-left: 10px;
+            }
+            .min-max-block p {
+                margin: 0;
+            }
+            .w-desc-box {
+                margin-top: 30px;
+            }
+            /* end weather top section */
+            /* weather card section */
+            .card-section {
+                margin-top: -80px;
+            }
+            .thumbnail {
+                padding: 0;
+                border: none;
+                border-radius: 3px;
+                background-color: #FFF;
+                -webkit-box-shadow: 5px 5px 7px 0px rgba(0,0,0,0.75);
+                -moz-box-shadow: 5px 5px 7px 0px rgba(0,0,0,0.75);
+                box-shadow: 0 0 10px 0 rgba(0,0,0,0.30);
+            }
+            .card-header {
+                background-color: #DDD;
+                position: relative;
+            }
+            .card-header > img {
+                display: block;
+                max-width: 100%;
+                height: auto;
+            }
+            .card-title {
+                color: #fff;
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                padding: 20px;
+            }
+            .card-image {
+                max-height: 60%;
+                overflow: hidden;
+                position: relative;
+            }
+            .thumbnail .caption {
+                padding: 20px;
+            }
+            .card-content p {
+                margin: 0;
+            }
+            .days-box {
+                padding: 30px 0;
+                -webkit-box-shadow: 0 3px 15px rgba(0,0,0,0.7);
+                /*box-shadow: 0 0 10px rgba(0,0,0,0.4);*/
+                box-shadow: 0 6px 5px -5px rgba(0,0,0,.5), 0 7px 0 -2px rgb(255, 255, 255), 0 11px 5px -5px rgba(0,0,0,.5), 0 13px 0 -4px rgba(255, 255, 255, 0.7), 0 16px 5px -5px rgba(0, 0, 0, 0.5), 0 20px 0 -8px rgba(255, 255, 255, 0.5);
+            }
+            .days-box .wi {
+                font-size: 2.5em;
+            }
+            .days-box > div {
+                border-left: 1px solid #ddd;
+            }
+            .days-box .day-first {
+                border: none;
+            }
+            .d-min-temp {
+                color: #039be5;
+            }
+            .d-max-temp {
+                color: #ef5350;
+            }
+            /* end weather card section */
+      /* https://codepen.io/sinapsis7 */
+            /* weather icon animation */
+            @keyframes wi-scale {
+                0%,100% {
+                    transform: scale(1);
+                }
+                50% {
+                    transform: scale(0.8);
+                }
+            }
+            @keyframes wi-rotate {
+                from {
+                    transform: rotate(0deg);
+                }
+                to {
+                    transform: rotate(45deg);
+                }
+            }
+            @keyframes wi-moveX {
+                0%,100% {
+                    transform: translate(0,0);
+                }
+                50% {
+                    transform: translate(-20px,0);
+                }
+            }
+            @keyframes wi-moveY {
+                0%,100% {
+                    transform: translate(0,0);
+                }
+                50% {
+                    transform: translate(0,20px);
+                }
+            }
+            @keyframes wi-fade {
+                0%,100% {
+                    opacity: 1;
+                }
+                50% {
+                    opacity: 0;
+                }
+            }
+            /* end weather icon animation */
+            
+            /* main animation */
+            @keyframes scale {
+                from { transform: scale(0,0) translate(0px,-550px); }
+                to { transform: scale(1,1) translate(0px,0px); }
+            }
+            @keyframes fadeIn {
+                from { opacity: 0; }
+                to { opacity: 1; }
+            }
+            
+            /*loading animation*/
+            .loading {
+                width: 100%;
+                height: 100%;
+                background-color: #039be5;
+                display: none;
+                position: absolute;
+                z-index: 1;
+            }
+            .spinner {
+                top: 40%;
+                margin: 100px auto;
+                width: 40px;
+                height: 40px;
+                position: relative;
+                text-align: center;
+                
+                -webkit-animation: sk-rotate 2.0s infinite linear;
+                animation: sk-rotate 2.0s infinite linear;
+            }
+            .dot1, .dot2 {
+                width: 60%;
+                height: 60%;
+                display: inline-block;
+                position: absolute;
+                top: 0;
+                background-color: #333;
+                border-radius: 100%;
+                
+                -webkit-animation: sk-bounce 2.0s infinite ease-in-out;
+                animation: sk-bounce 2.0s infinite ease-in-out;
+            }
+            .dot2 {
+                top: auto;
+                bottom: 0;
+                -webkit-animation-delay: -1.0s;
+                animation-delay: -1.0s;
+            }
+            @-webkit-keyframes sk-rotate { 100% { -webkit-transform: rotate(360deg) }}
+            @keyframes sk-rotate { 100% { transform: rotate(360deg); -webkit-transform: rotate(360deg) }}
+            @-webkit-keyframes sk-bounce {
+                0%, 100% { -webkit-transform: scale(0.0) }
+                50% { -webkit-transform: scale(1.0) }
+            }
+            @keyframes sk-bounce {
+                0%, 100% { 
+                    transform: scale(0.0);
+                    -webkit-transform: scale(0.0);
+                } 50% { 
+                    transform: scale(1.0);
+                    -webkit-transform: scale(1.0);
+                }
+            }
+            /* Switch button */
+            .onoffswitch {
+                position: relative; width: 80px;
+                -webkit-user-select:none; -moz-user-select:none; -ms-user-select: none;
+            }
+            .onoffswitch-checkbox {
+                display: none;
+            }
+            .onoffswitch-label {
+                display: block; overflow: hidden; cursor: pointer;
+                border: 2px solid #CCC; border-radius: 20px;
+            }
+            .onoffswitch-inner {
+                display: block; width: 200%; margin-left: -100%;
+                transition: margin 0.3s ease-in 0s;
+            }
+            .onoffswitch-inner:before, .onoffswitch-inner:after {
+                display: block; float: left; width: 50%; height: 28px; padding: 0; line-height: 28px;
+                font-size: 21px; color: white; font-family: Trebuchet, Arial, sans-serif; font-weight: bold;
+                box-sizing: border-box;
+            }
+            .onoffswitch-inner:before {
+                content: "°C";
+                padding-left: 10px;
+                background-color: #333; color: #B2FF59;
+            }
+            .onoffswitch-inner:after {
+                content: "°F";
+                padding-right: 10px;
+                background-color: #333; color: #B2FF59;
+                text-align: right;
+            }
+            .onoffswitch-switch {
+                display: block; width: 32px; margin: 0px;
+                background: #EEE;
+                position: absolute; top: 0; bottom: 0;
+                right: 48px;
+                border: 2px solid #CCC; border-radius: 20px;
+                transition: all 0.3s ease-in 0s; 
+            }
+            .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-inner {
+                margin-left: 0;
+            }
+            .onoffswitch-checkbox:checked + .onoffswitch-label .onoffswitch-switch {
+                right: 0px; 
+            }
+</style>
+<body>
+    <div class="loading">
+        <div class="spinner">
+            <div class="dot1"></div>
+            <div class="dot2"></div>
+        </div>
+    </div>
+    <section id="main">
+     <div class="bg-primary w-section text-shadow">
+             <div class="container">
+                <div class="row text-white w-header">
+                    <div class="col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+                        <div class="row">
+                            <div class="col-xs-7">
+                                <form id="f_locator">
+                                    <div id="w-search-tip" class="tooltiptext text-light">
+<p>You can get weather by city name or city name and <a href="https://www.iso.org/obp/ui/#search" class="text-accent" target="_blank">iso country code (alpha-2 code)</a> divided by comma.</p> <h5>Example:</h5>
+                                        <p class="text-white"><strong>London, uk</strong></p>
+                              </div>
+                                    <input type="text" id="location" data-tooltip="#w-search-tip">
+                                </form>
+                                <span class="glyphicon glyphicon-map-marker"></span>
+                            </div>
+                            <div class="col-xs-5 text-right"><span id="date"></span></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-3 col-xs-offset-9 text-right">
+                                <div class="unit-block text-accent text-left">
+                                    <div class="onoffswitch">
+                                        <input type="checkbox" name="onoffswitch" class="onoffswitch-checkbox" id="unit-switch" checked>
+                                        <label class="onoffswitch-label" for="unit-switch">
+                                            <span class="onoffswitch-inner"></span>
+                                            <span class="onoffswitch-switch"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="row text-white w-main">
+                    <div class="col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+                            <div class="text-center">
+                                <i id="wicon-main" class="wi wi-main"></i>
+                                <span id="temperature"></span>
+                            </div>
+                        <div class="row">
+                            <div class="col-xs-12 w-desc-box">
+                                <p id="description" class="text-capitalize"></p>
+                                <p><span id="humidity"></span> <i class="wi wi-humidity"></i> Humidity</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="container card-section">
+            <div class="row">
+                <div class="col-sm-8 col-sm-offset-2 col-md-6 col-md-offset-3">
+                    <div class="days-box row text-center bg-white">
+                        <div class="col-xs-3 day-first">
+                            <p class="day"></p>
+                            <hr class="hr-title hr-title-primary">
+                            <p><i class="wi"></i></p>
+                            <p><span class="d-min-temp"></span> <span class="d-max-temp"></span></p>
+                        </div>
+                        <div class="col-xs-3">
+                            <p class="day"></p>
+                            <hr class="hr-title hr-title-primary">
+                            <p><i class="wi"></i></p>
+                            <p><span class="d-min-temp"></span> <span class="d-max-temp"></span></p>
+                        </div>
+                        <div class="col-xs-3">
+                            <p class="day"></p>
+                            <hr class="hr-title hr-title-primary">
+                            <p><i class="wi"></i></p>
+                            <p><span class="d-min-temp"></span> <span class="d-max-temp"></span></p>
+                        </div>
+                        <div class="col-xs-3">
+                            <p class="day"></p>
+                            <hr class="hr-title hr-title-primary">
+                            <p><i class="wi"></i></p>
+                            <p><span class="d-min-temp"></span> <span class="d-max-temp"></span></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+  <script src="app.js"></script>  
+  <script src="https://code.jquery.com/jquery-2.2.4.min.js"></script>
+  <script>
+      "use strict";
+//Weather definition
+var Weather = function () {};
+Weather.prototype.setDate = function () {
+  var d = new Date();
+  var n = d.toDateString();
+  $("#date").text(n);
+};
+Weather.prototype.getLocation = function () {
+  //get location from ip address
+  var res = {
+    "city": "Buenos Aires",
+    "country": "Argentina",
+    "countryCode": "AR",
+    "query": "200.61.38.44",
+    "regionName": "Buenos Aires F.D.",
+    "status": "success"
+  };
+  if (res.status === "success") {
+    document.getElementById("location").value = res.city + ", " + res.countryCode;
+    this.location = res.city + ", " + res.countryCode;
+    this.currentWeather();
+    this.forecast();
+  }
+};
+Weather.prototype.setLocation = function () {
+  //set location from input text
+  $("#f_locator").on("submit", function (e) {
+    e.preventDefault();
+    this.location = $("#location").val();
+    this.currentWeather();
+    this.forecast();
+    this.loadAnimation();
+  }.bind(this));
+};
+Weather.prototype.getWeatherIcon = function (wId, sunrise, sunset) {
+  //get weather icon passing returned ID of openweather API. Optional sunrise and sunset time, to determine if is day or night type icon. Return an object with icon name and icon animation properties.
+  if (wId) {
+    var icon = {};
+    icon.name = "na";
+    icon.animation = "wi-scale";
+    function between(min, max, group, animation) {
+      if (wId >= min && wId < max) {
+        icon.name = group ? group : "na";
+        icon.animation = animation ? animation : "wi-scale";
+      }
+    }
+    between(200, 300, "thunderstorm", "wi-fade");
+    between(300, 400, "showers", "wi-moveY");
+    between(500, 600, "rain", "wi-moveY");
+    between(600, 700, "snow", "wi-moveY");
+    between(700, 800, "na", "wi-fade");
+    between(801, 900, "cloudy", "wi-moveX");
+    between(900, 1000, "na");
+    var cond = {
+      200: "storm-showers",
+      201: "storm-showers",
+      202: "thunderstorm",
+      500: "rain-mix",
+      501: "rain-mix",
+      502: "rain",
+      511: "sleet",
+      520: "rain-mix",
+      521: "rain-mix",
+      600: "snow",
+      611: "sleet",
+      701: "fog",
+      741: "fog",
+      905: "windy",
+      906: "hail"
+    };
+    var neutralCond = {
+      711: "smoke",
+      731: "sandstorm",
+      761: "dust",
+      762: "volcano",
+      781: "tornado",
+      900: "tornado",
+      902: "hurricane",
+      903: "snowflake-cold",
+      904: "hot",
+      958: "gale-warning",
+      959: "gale-warning",
+      960: "storm-warning",
+      961: "storm-warning",
+      962: "hurricane"
+    };
+    var dayCond = {
+      721: "haze",
+      800: "sunny"
+    };
+    var nightCond = {
+      800: "clear",
+      701: "fog",
+      741: "fog"
+    };
+    icon.name = cond[wId] ? cond[wId] : icon.name;
+    icon.name = neutralCond[wId] ? neutralCond[wId] : icon.name;
+    icon.name = dayCond[wId] ? dayCond[wId] : icon.name;
+    var time = "day";
+    if (sunrise && sunset) {
+      var now = Date.now() / 1000;
+      var srDate = new Date(sunrise * 1000);
+      if (srDate.getDate() == new Date().getDate()) {
+        if (now <= sunrise && now >= sunset) {
+          time = nightCond[wId] ? "night" : "night-alt";
+          icon.name = nightCond[wId] ? nightCond[wId] : icon.name;
+        }
+      } else {
+        time = nightCond[wId] ? "night" : "night-alt";
+        icon.name = nightCond[wId] ? nightCond[wId] : icon.name;
+      }
+    }
+    if (icon.name != "na" && !neutralCond[wId]) {
+      icon.name = "wi-" + time + "-" + icon.name;
+    } else {
+      icon.name = "wi-" + icon.name;
+    }
+    icon.animation = icon.name == "wi-day-sunny" ? "wi-rotate" : icon.animation;
+    return icon;
+  }
+}; //end getWeatherIcon
+Weather.prototype.displayWeatherIcon = function (selector, icon) {
+  //display weather icon. first arg is where to display. Second arg is what returned from getWeatherIcon method.
+  if (selector && typeof icon == "object") {
+    if (icon.name != "na") {
+      $(selector).addClass(icon.name);
+      animate(selector, icon.animation, 2000, 0, "linear", "infinite");
+    }
+  }
+};
+Weather.prototype.currentWeather = function () {
+  //get current weather from openweather API, format, and display it.
+  if (this.location) {
+    function setMain(res) {
+      if (res.main) {
+        $("#temperature").text(Math.round(res.main.temp) + "°");
+        $("#description").text(res.weather[0].description);
+        if (res.main.humidity) {
+          $("#humidity").text(res.main.humidity);
+        } else {
+          $("#humidity").text("0");
+        }
+      }
+    }
+    $.getJSON("https://api.openweathermap.org/data/2.5/weather", {
+      q: this.location,
+      units: "metric",
+      appid: "bc1301b0b23fe6ef52032a7e5bb70820"
+    }, function (json) {
+      var wId = json.weather[0].id;
+      if (wId) {
+        var icon = this.getWeatherIcon(wId, json.sys.sunrise, json.sys.sunset);
+        this.displayWeatherIcon("#wicon-main", icon);
+      }
+      setMain(json);
+    }.bind(this));
+  }
+}; //end currentWeather
+Weather.prototype.forecast = function () {
+  //get forecast (4 days) weather from openweather API, format, and display it.
+  function setForecast(res) {
+    this.daily = [];
+    var list = res.list;
+    for (var i = 0, len = list.length; i < len; i++) {
+      this.daily[i] = this.daily[i] ? this.daily[i] : {};
+      this.daily[i].maxTemp = Math.round(list[i].temp.max);
+      this.daily[i].minTemp = Math.round(list[i].temp.min);
+      this.daily[i].day = new Date(list[i].dt * 1000).getDay();
+      var iconId = list[i].weather[0].id;
+      this.daily[i].icon = this.getWeatherIcon(iconId);
+    }
+  }
+  function displayForecast() {
+    var days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+        _this = this;
+    $(".days-box").children(".col-xs-3").each(function (index) {
+      $(this).children('.day').text(days[_this.daily[index].day]);
+      $(this).find('.d-min-temp').text(_this.daily[index].minTemp + "°");
+      $(this).find('.d-max-temp').text(_this.daily[index].maxTemp + "°");
+      $(this).find('.wi').addClass(_this.daily[index].icon.name);
+    });
+  }
+  $.getJSON("https://api.openweathermap.org/data/2.5/forecast/daily", {
+    q: this.location,
+    cnt: 4,
+    units: "metric",
+    appid: "bc1301b0b23fe6ef52032a7e5bb70820"
+  }, function (json) {
+    setForecast.call(this, json);
+    displayForecast.call(this);
+  }.bind(this));
+};
+Weather.prototype.setUnit = function () {
+  //Switch between Celsius and Farhenheit
+  var prevUnit = "C";
+  $("#unit-switch").on("click", function () {
+    var newUnit = prevUnit == "C" ? "F" : "C";
+    $("span:contains('°')").each(function (index, el) {
+      var temp_current = parseFloat($(el).text());
+      if (newUnit == "F") {
+        var temp_new = Math.round(temp_current * 1.8 + 32);
+      } else if (newUnit == "C") {
+        var temp_new = Math.round((temp_current - 32) / 1.8);
+      }
+      $(el).text(temp_new + "°");
+      animate(el, "fadeIn", 400, 0, "ease-out");
+    });
+    prevUnit = newUnit;
+  });
+};
+Weather.prototype.loadAnimation = function () {
+  $(".loading").css("display", "block");
+  var countAjax = 0;
+  $(document).ajaxComplete(function () {
+    countAjax++;
+    if (countAjax == 2) {
+      $(".loading").fadeOut();
+      loadTooltips();
+      animate(".days-box", "scale", 400, 500, "ease-out");
+      var delayAnim = 1300;
+      $(".days-box").children(".col-xs-3").each(function () {
+        animate(this, "fadeIn", 350, delayAnim, "ease-out");
+        delayAnim += 350;
+      });
+    }
+  });
+}; //Animation using CSS @keyframes
+function animate(selector, keyFrameName, duration, delay = 0, timing = "ease", iteration = 1) {
+  //jQuery selector; CSS keyframes name; duration in ms; delay in ms;
+  $(selector).css({
+    "visibility": "hidden"
+  });
+  setTimeout(function () {
+    $(selector).css({
+      "visibility": "visible"
+    });
+    $(selector).css({
+      "animation": keyFrameName + " " + duration + "ms " + timing + " " + iteration
+    });
+  }, delay);
+  if (iteration != "infinite") {
+    setTimeout(function () {
+      $(selector).css({
+        "animation": ""
+      });
+    }, (delay + duration) * iteration);
+  }
+}
+;
+/* https://codepen.io/sinapsis7 */
+function loadTooltips() {
+  //search for elements that have data-tooltips attributes on the web page, and display it.
+  $("[data-tooltip]").each(function () {
+    var tag = $(this)[0].tagName.toLowerCase();
+    var tooltip = $(this).attr("data-tooltip");
+    var tooltipParentH = $(this).outerHeight();
+    var parentPosition = $(this).position();
+    $(tooltip).insertAfter(this);
+    $(tooltip).css({
+      "max-width": document.body.clientWidth - parentPosition.left - 5 + "px",
+      "transition": "opacity 0.3s"
+    });
+    function showTooltip() {
+      $(tooltip).css({
+        "visibility": "visible",
+        "opacity": 1,
+        "top": parentPosition.top + tooltipParentH + 10 + "px",
+        "left": parentPosition.left + "px"
+      });
+    }
+    function hideTooltip() {
+      $(tooltip).on("mouseenter", stopTimerHide);
+      function stopTimerHide() {
+        clearTimeout(timerHide);
+        $(tooltip).on("mouseleave", hideTooltip);
+      }
+      var timerHide = setTimeout(function () {
+        $(tooltip).css({
+          "visibility": "hidden",
+          "opacity": 0
+        });
+      }, 100);
+    }
+    var _this = $(this);
+    if (tag == "input") {
+      $(this).on("focus", function () {
+        showTooltip();
+        _this.off("mouseleave", hideTooltip);
+      });
+      $(this).on("blur", function () {
+        hideTooltip();
+        _this.on("mouseleave", hideTooltip);
+      });
+      $(this).on("mouseenter", showTooltip);
+      $(this).on("mouseleave", hideTooltip);
+    } else {
+      $(this).on("mouseenter", showTooltip);
+      $(this).on("mouseleave", hideTooltip);
+    }
+  });
+} //Run
+var weather = new Weather();
+$(document).ready(function () {
+  $("#unit-switch").prop('checked', true);
+  weather.loadAnimation();
+  weather.setDate();
+  weather.getLocation();
+  weather.setLocation();
+  weather.setUnit();
+});
+  </script>
+</body>
+</html>
